@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # Plot the residuals graphically on screen on-the-fly
+ln -s $1 log
+
 touch ./residual.gp
 
 tee -a ./residual.gp <<END
@@ -8,14 +10,24 @@ set logscale y
 set title "Residuals"
 set ylabel 'Residual'
 set xlabel 'Iteration'
-plot "< cat log | grep 'Solving for Ux' | cut -d' ' -f9 | tr -d ','" title 'Ux' with lines,\\
-"< cat log | grep 'Solving for Uy' | cut -d' ' -f9 | tr -d ','" title 'Uy' with lines,\\
-"< cat log | grep 'Solving for Uz' | cut -d' ' -f9 | tr -d ','" title 'Uz' with lines,\\
-"< cat log | grep 'Solving for omega' | cut -d' ' -f9 | tr -d ','" title 'omega' with lines,\\
-"< cat log | grep 'Solving for k' | cut -d' ' -f9 | tr -d ','" title 'k' with lines,\\
-"< cat log | grep 'Solving for p' | cut -d' ' -f9 | tr -d ','" title 'p' with lines
+END
+argc=$#
+argv=($@)
+for (( j=0; j<argc; j++ ));
+do
+    if [[ ( j -eq  argc-1  ) && ( j -eq 1 ) ]]; then
+        echo  "plot \"< cat log | grep 'Solving for ${argv[j]}' | cut -d' ' -f9 | tr -d ','\" title '${argv[j]}' with lines" >> ./residual.gp
+    elif [[ ( j -lt argc-1 ) && ( j -eq 1 ) ]]; then
+        echo "plot \"< cat log | grep 'Solving for ${argv[j]}' | cut -d' ' -f9 | tr -d ','\" title '${argv[j]}' with lines,\\" >> ./residual.gp
+    elif [[ ( j -eq argc-1 ) ]]; then
+        echo "\"< cat log | grep 'Solving for ${argv[j]}' | cut -d' ' -f9 | tr -d ','\" title '${argv[j]}' with lines" >> ./residual.gp
+    elif [[ ( j -lt $# ) && ( j -gt 1 ) ]]; then
+        echo "\"< cat log | grep 'Solving for ${argv[j]}' | cut -d' ' -f9 | tr -d ','\" title '${argv[j]}' with lines,\\" >> ./residual.gp
+    fi
+done
 
-pause 1
+tee -a ./residual.gp <<END
+pause 0.1 
 reread
 END
 
