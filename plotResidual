@@ -32,3 +32,6 @@ reread
 END
 
 gnuplot ./residual.gp &
+pid=$!
+echo "If you do not want to monitor residuals graphically , please run:"
+echo "$ kill " $pid
